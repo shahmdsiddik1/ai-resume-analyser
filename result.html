@@ -7,82 +7,54 @@
 <body>
 
 <div class="container">
-
     <div class="card">
 
-        <h1>🚀 Resume Analysis</h1>
+        <h1>Resume Analysis</h1>
 
-        <!-- SCORE -->
-        <div class="score-section">
-            <h2>{{ score }} / 100</h2>
+        <p><b>Name:</b> {{ name }}</p>
+        <p><b>Email:</b> {{ email }}</p>
 
-            <div class="progress">
-                <div class="progress-bar {{ color }}" style="width: {{ score }}%;"></div>
-            </div>
+        <h2>Score: {{ score }} / 100</h2>
+
+        <div class="progress">
+            <div class="progress-bar {{ color }}" style="width: {{ score }}%;"></div>
         </div>
 
-        <!-- SKILLS -->
-        <div class="section">
-            <h3>✅ Skills Found</h3>
-            <div class="tags">
-                {% for skill in skills %}
-                    <span class="tag green">{{ skill }}</span>
-                {% endfor %}
-            </div>
-        </div>
+        <h3>Skills Found</h3>
+        {% for skill in skills %}
+            <span class="tag green">{{ skill }}</span>
+        {% endfor %}
 
-        <!-- MISSING -->
-        <div class="section">
-            <h3>❌ Missing Skills</h3>
-            <div class="tags">
-                {% for skill in missing %}
-                    <span class="tag red">{{ skill }}</span>
-                {% endfor %}
-            </div>
-        </div>
+        <h3>Missing Skills</h3>
+        {% for skill in missing %}
+            <span class="tag red">{{ skill }}</span>
+        {% endfor %}
 
-        <!-- ROLES -->
-        <div class="section">
-            <h3>🎯 Role Matching</h3>
-            <div class="roles">
-                {% for role, value in roles.items() %}
-                    <div class="role-box">
-                        <p>{{ role }}</p>
-                        <span>{{ value }}</span>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
+        <h3>Role Matching</h3>
+        <ul>
+            {% for role, value in roles.items() %}
+                <li>{{ role }} : {{ value }}</li>
+            {% endfor %}
+        </ul>
 
-        <!-- SUGGESTIONS -->
-        <div class="section">
-            <h3>💡 AI Suggestions</h3>
-            <ul class="suggestions">
-                {% for s in suggestions %}
-                    <li>{{ s }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+        <h3>AI Suggestions</h3>
+        <ul>
+            {% for s in suggestions %}
+                <li>{{ s }}</li>
+            {% endfor %}
+        </ul>
 
-        <a href="/" class="btn">🔄 Upload Again</a>
+        <br>
+
+        <a href="/portfolio?name={{ name }}&email={{ email }}&skills={{ skills|join(',') }}" class="btn">
+            Generate Portfolio
+        </a>
+
+        <br><br>
+        <a href="/" class="btn">Upload Again</a>
 
     </div>
-
-</div>
-<!-- SUMMARY -->
-<div class="section">
-    <h3>🧾 Professional Summary</h3>
-    <p class="summary">{{ summary }}</p>
 </div>
 
-<!-- PROJECTS -->
-<div class="section">
-    <h3>🚀 Suggested Projects</h3>
-    <ul class="projects">
-        {% for p in projects %}
-            <li>{{ p }}</li>
-        {% endfor %}
-    </ul>
-</div>
 </body>
 </html>
