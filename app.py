@@ -5,10 +5,11 @@ import pdfplumber
 import pytesseract
 from PIL import Image
 
-# Tesseract path (Windows)
+# ✅ Tesseract path (Windows)
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 app = Flask(__name__)
+
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
@@ -76,6 +77,7 @@ def analyze_skills(text):
 def calculate_score(skills):
     if "No skills detected" in skills:
         return 5.0
+
     return round((len(skills) / 15) * 100, 2)
 
 
@@ -101,6 +103,9 @@ def analyze_roles(skills):
         if s in ["PYTHON", "MACHINE LEARNING"]:
             roles["Data Scientist"] += 1
 
+        if s in ["DOCKER", "KUBERNETES", "GIT"]:
+            roles["DevOps Engineer"] += 1
+
     return roles
 
 
@@ -119,17 +124,49 @@ def generate_suggestions(skills):
 
     if "PYTHON" not in skills:
         suggestions.append("Add Python projects")
+
     if "AWS" not in skills:
         suggestions.append("Learn AWS (important for Cloud)")
+
     if "DOCKER" not in skills:
         suggestions.append("Learn Docker")
+
     if "KUBERNETES" not in skills:
         suggestions.append("Learn Kubernetes")
 
+    if "GIT" not in skills:
+        suggestions.append("Add Git & GitHub experience")
+
     if not suggestions:
-        suggestions.append("Great resume!")
+        suggestions.append("Great resume! Add real-world projects.")
 
     return suggestions
+
+
+# ================= PORTFOLIO GENERATOR =================
+def generate_portfolio(skills):
+    summary = ""
+    projects = []
+
+    if "PYTHON" in skills:
+        summary = "Aspiring Software Engineer with strong Python skills and problem-solving ability."
+        projects.append("AI Resume Analyzer (Flask + NLP)")
+        projects.append("Automation Scripts using Python")
+
+    if "AWS" in skills or "DOCKER" in skills:
+        summary += " Experienced in Cloud and DevOps tools."
+        projects.append("Cloud Deployment Project (AWS EC2 + Docker)")
+        projects.append("CI/CD Pipeline using GitHub Actions")
+
+    if "MACHINE LEARNING" in skills:
+        summary += " Passionate about Machine Learning and Data Science."
+        projects.append("ML Model for Prediction")
+        projects.append("Data Analysis using Pandas & NumPy")
+
+    if summary == "":
+        summary = "Entry-level developer building strong foundations in programming."
+
+    return summary, projects
 
 
 # ================= ROUTES =================
@@ -143,12 +180,16 @@ def upload():
     file = request.files.get("resume")
 
     if not file or file.filename == "":
-        return "No file selected"
+        return "❌ No file selected"
 
     path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(path)
 
     text = extract_text(path)
+
+    print("\n========== EXTRACTED TEXT ==========\n")
+    print(text[:500])
+    print("\nTEXT LENGTH:", len(text))
 
     name, email = extract_basic_info(text)
     skills = analyze_skills(text)
@@ -157,6 +198,8 @@ def upload():
     roles = analyze_roles(skills)
     color = get_color(score)
     suggestions = generate_suggestions(skills)
+    summary, projects = generate_portfolio(skills)
+
 
     return render_template(
         "result.html",
@@ -167,24 +210,64 @@ def upload():
         missing=missing,
         roles=roles,
         color=color,
-        suggestions=suggestions
+        suggestions=suggestions,
+        summary=summary,
+        projects=projects
     )
 
 
 @app.route("/portfolio")
 def portfolio():
-    name = request.args.get("name")
-    email = request.args.get("email")
-    skills = request.args.get("skills")
+    name = request.args.get("name", "Your Name")
+    email = request.args.get("email", "your@email.com")
+    skills = request.args.get("skills", "")
 
     skills = skills.split(",") if skills else []
+
+    summary, projects = generate_portfolio(skills)
 
     return render_template(
         "portfolio.html",
         name=name,
         email=email,
-        skills=skills
+        skills=skills,
+        summary=summary,
+        projects=projects
     )
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+
+
+def create_pdf(name, email, skills, summary, projects):
+    file_path = "portfolio.pdf"
+
+    doc = SimpleDocTemplate(file_path)
+    styles = getSampleStyleSheet()
+
+    content = []
+
+    content.append(Paragraph(f"<b>Name:</b> {name}", styles["Normal"]))
+    content.append(Paragraph(f"<b>Email:</b> {email}", styles["Normal"]))
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph("<b>Skills:</b>", styles["Heading2"]))
+    for s in skills:
+        content.append(Paragraph(s, styles["Normal"]))
+
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph("<b>Summary:</b>", styles["Heading2"]))
+    content.append(Paragraph(summary, styles["Normal"]))
+
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph("<b>Projects:</b>", styles["Heading2"]))
+    for p in projects:
+        content.append(Paragraph(p, styles["Normal"]))
+
+    doc.build(content)
+
+    return file_path
 
 
 # ================= RUN =================
