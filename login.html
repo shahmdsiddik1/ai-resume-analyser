@@ -1,15 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 <div class="container">
-<div class="card">
+    <div class="card auth-card">
 
-<h2>Login</h2>
+        <h2>🔐 Welcome Back</h2>
 
-<form method="POST">
-<input name="username" placeholder="Username">
-<input name="password" type="password">
-<button>Login</button>
-</form>
+        <form method="POST">
+            <input type="text" name="username" placeholder="Username" required>
 
-<a href="/register">Register</a>
+            <input type="password" name="password" placeholder="Password" required>
 
+            <button type="submit" class="btn">Login</button>
+        </form>
+
+        <p class="switch">
+            Don't have an account?
+            <a href="/register">Create Account</a>
+        </p>
+
+    </div>
 </div>
-</div>
+
+</body>
+</html>
