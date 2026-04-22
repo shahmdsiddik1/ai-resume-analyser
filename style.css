@@ -150,3 +150,67 @@ h1 {
 .projects li {
     margin-bottom: 8px;
 }
+/* ===== AUTH UI ===== */
+.auth-card {
+    width: 350px;
+    text-align: center;
+}
+
+.auth-card h2 {
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+/* Inputs */
+.auth-card input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    background: #3b3f63;
+    color: white;
+    font-size: 14px;
+}
+
+/* Button */
+.auth-card .btn {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+    background: linear-gradient(90deg, #6a5af9, #8f7afe);
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Switch text */
+.switch {
+    margin-top: 15px;
+    color: #ccc;
+}
+
+.switch a {
+    color: #8f7afe;
+    text-decoration: none;
+    font-weight: bold;
+}
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.alert.success {
+    background: #2ecc71;
+    color: white;
+}
+
+.alert.error {
+    background: #e74c3c;
+    color: white;
+}
