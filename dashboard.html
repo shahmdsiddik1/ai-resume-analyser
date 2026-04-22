@@ -1,0 +1,20 @@
+<div class="container">
+<div class="card">
+
+<h2>Dashboard</h2>
+
+<form action="/upload" method="POST" enctype="multipart/form-data">
+<input type="file" name="resume" required>
+<button>Analyze</button>
+</form>
+
+<h3>History</h3>
+
+{% for r in history %}
+<p>{{ r.skills }} - {{ r.score }}</p>
+{% endfor %}
+
+<a href="/logout">Logout</a>
+
+</div>
+</div>

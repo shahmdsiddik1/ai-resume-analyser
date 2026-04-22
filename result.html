@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resume Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>🚀 Resume Analysis</h1>
+
+        <!-- SCORE -->
+        <div class="score-section">
+            <h2>{{ score }} / 100</h2>
+
+            <div class="progress">
+                <div class="progress-bar {{ color }}" style="width: {{ score }}%;"></div>
+            </div>
+        </div>
+
+        <!-- SKILLS -->
+        <div class="section">
+            <h3>✅ Skills Found</h3>
+            <div class="tags">
+                {% for skill in skills %}
+                    <span class="tag green">{{ skill }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- MISSING -->
+        <div class="section">
+            <h3>❌ Missing Skills</h3>
+            <div class="tags">
+                {% for skill in missing %}
+                    <span class="tag red">{{ skill }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ROLES -->
+        <div class="section">
+            <h3>🎯 Role Matching</h3>
+            <div class="roles">
+                {% for role, value in roles.items() %}
+                    <div class="role-box">
+                        <p>{{ role }}</p>
+                        <span>{{ value }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- SUGGESTIONS -->
+        <div class="section">
+            <h3>💡 AI Suggestions</h3>
+            <ul class="suggestions">
+                {% for s in suggestions %}
+                    <li>{{ s }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <a href="/" class="btn">🔄 Upload Again</a>
+
+    </div>
+
+</div>
+
+</body>
+</html>
