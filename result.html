@@ -69,6 +69,20 @@
     </div>
 
 </div>
+<!-- SUMMARY -->
+<div class="section">
+    <h3>🧾 Professional Summary</h3>
+    <p class="summary">{{ summary }}</p>
+</div>
 
+<!-- PROJECTS -->
+<div class="section">
+    <h3>🚀 Suggested Projects</h3>
+    <ul class="projects">
+        {% for p in projects %}
+            <li>{{ p }}</li>
+        {% endfor %}
+    </ul>
+</div>
 </body>
 </html>
