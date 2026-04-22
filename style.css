@@ -1,0 +1,142 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1f1c2c, #928dab);
+    margin: 0;
+    padding: 0;
+    color: white;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.card {
+    background: #2c2f4a;
+    padding: 30px;
+    border-radius: 20px;
+    width: 600px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* SCORE */
+.score-section {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.progress {
+    background: #444;
+    border-radius: 20px;
+    height: 12px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 20px;
+    animation: grow 1.5s ease-in-out;
+}
+
+/* COLORS */
+.green-bar {
+    background: linear-gradient(90deg, #00c853, #64dd17);
+}
+
+.orange-bar {
+    background: linear-gradient(90deg, #ff9800, #ffc107);
+}
+
+.red-bar {
+    background: linear-gradient(90deg, #ff1744, #ff5252);
+}
+
+/* TAGS */
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tag {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 14px;
+}
+
+.green {
+    background: #2ecc71;
+}
+
+.red {
+    background: #e74c3c;
+}
+
+/* SECTIONS */
+.section {
+    margin-top: 20px;
+}
+
+/* ROLES */
+.roles {
+    display: flex;
+    justify-content: space-between;
+}
+
+.role-box {
+    background: #3b3f63;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    width: 30%;
+}
+
+.role-box span {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* SUGGESTIONS */
+.suggestions {
+    padding-left: 20px;
+}
+
+.suggestions li {
+    margin-bottom: 8px;
+}
+
+/* BUTTON */
+.btn {
+    display: block;
+    text-align: center;
+    margin-top: 25px;
+    padding: 12px;
+    background: #6c63ff;
+    border-radius: 10px;
+    text-decoration: none;
+    color: white;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #574fd6;
+}
+
+/* ANIMATIONS */
+@keyframes grow {
+    from { width: 0; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
