@@ -1,17 +1,91 @@
 import os
 import re
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, flash
 import pdfplumber
 import pytesseract
 from PIL import Image
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# ✅ Tesseract path (Windows)
+# ================= TESSERACT =================
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+# ================= APP =================
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["UPLOAD_FOLDER"] = "uploads"
+app.config["SECRET_KEY"] = "secret123"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
+
+db = SQLAlchemy(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+
+# ================= USER MODEL =================
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(200))
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# ================= AUTH =================
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if User.query.filter_by(username=username).first():
+            flash("⚠️ User already exists", "error")
+            return redirect(url_for("register"))
+
+        hashed_password = generate_password_hash(password)
+
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        login_user(new_user)  # ✅ auto login
+        flash("✅ Registered successfully!", "success")
+
+        return redirect(url_for("index"))
+
+    return render_template("register.html")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        user = User.query.filter_by(username=username).first()
+
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            flash("✅ Login successful!", "success")
+            return redirect(url_for("index"))
+
+        flash("❌ Invalid username or password", "error")
+        return redirect(url_for("login"))
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
 
 
 # ================= TEXT EXTRACTION =================
@@ -34,7 +108,7 @@ def extract_text(filepath):
     return text
 
 
-# ================= BASIC INFO =================
+# ================= YOUR ORIGINAL LOGIC =================
 def extract_basic_info(text):
     name = "Not Found"
     email = "Not Found"
@@ -54,7 +128,6 @@ def extract_basic_info(text):
     return name, email
 
 
-# ================= SKILLS =================
 def analyze_skills(text):
     skills_list = [
         "python", "java", "c++", "sql", "html", "css",
@@ -73,21 +146,17 @@ def analyze_skills(text):
     return list(set(found)) if found else ["No skills detected"]
 
 
-# ================= SCORE =================
 def calculate_score(skills):
     if "No skills detected" in skills:
         return 5.0
-
     return round((len(skills) / 15) * 100, 2)
 
 
-# ================= MISSING =================
 def missing_skills(found):
     important = ["PYTHON", "AWS", "DOCKER", "KUBERNETES", "GIT"]
     return [s for s in important if s not in found]
 
 
-# ================= ROLES =================
 def analyze_roles(skills):
     roles = {
         "Cloud Engineer": 0,
@@ -109,7 +178,6 @@ def analyze_roles(skills):
     return roles
 
 
-# ================= COLOR =================
 def get_color(score):
     if score > 70:
         return "green-bar"
@@ -118,78 +186,62 @@ def get_color(score):
     return "red-bar"
 
 
-# ================= SUGGESTIONS =================
 def generate_suggestions(skills):
     suggestions = []
 
     if "PYTHON" not in skills:
         suggestions.append("Add Python projects")
-
     if "AWS" not in skills:
-        suggestions.append("Learn AWS (important for Cloud)")
-
+        suggestions.append("Learn AWS")
     if "DOCKER" not in skills:
         suggestions.append("Learn Docker")
-
     if "KUBERNETES" not in skills:
         suggestions.append("Learn Kubernetes")
 
-    if "GIT" not in skills:
-        suggestions.append("Add Git & GitHub experience")
-
     if not suggestions:
-        suggestions.append("Great resume! Add real-world projects.")
+        suggestions.append("Great resume!")
 
     return suggestions
 
 
-# ================= PORTFOLIO GENERATOR =================
 def generate_portfolio(skills):
     summary = ""
     projects = []
 
     if "PYTHON" in skills:
-        summary = "Aspiring Software Engineer with strong Python skills and problem-solving ability."
-        projects.append("AI Resume Analyzer (Flask + NLP)")
-        projects.append("Automation Scripts using Python")
+        summary = "Aspiring Software Engineer with strong Python skills."
+        projects.append("AI Resume Analyzer")
+        projects.append("Automation Scripts")
 
-    if "AWS" in skills or "DOCKER" in skills:
-        summary += " Experienced in Cloud and DevOps tools."
-        projects.append("Cloud Deployment Project (AWS EC2 + Docker)")
-        projects.append("CI/CD Pipeline using GitHub Actions")
-
-    if "MACHINE LEARNING" in skills:
-        summary += " Passionate about Machine Learning and Data Science."
-        projects.append("ML Model for Prediction")
-        projects.append("Data Analysis using Pandas & NumPy")
+    if "AWS" in skills:
+        summary += " Cloud knowledge."
+        projects.append("AWS Deployment")
 
     if summary == "":
-        summary = "Entry-level developer building strong foundations in programming."
+        summary = "Beginner developer."
 
     return summary, projects
 
 
 # ================= ROUTES =================
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
 
 @app.route("/upload", methods=["POST"])
+@login_required
 def upload():
     file = request.files.get("resume")
 
     if not file or file.filename == "":
-        return "❌ No file selected"
+        return "No file selected"
 
     path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(path)
 
     text = extract_text(path)
-
-    print("\n========== EXTRACTED TEXT ==========\n")
-    print(text[:500])
-    print("\nTEXT LENGTH:", len(text))
 
     name, email = extract_basic_info(text)
     skills = analyze_skills(text)
@@ -199,7 +251,6 @@ def upload():
     color = get_color(score)
     suggestions = generate_suggestions(skills)
     summary, projects = generate_portfolio(skills)
-
 
     return render_template(
         "result.html",
@@ -217,62 +268,25 @@ def upload():
 
 
 @app.route("/portfolio")
+@login_required
 def portfolio():
-    name = request.args.get("name", "Your Name")
-    email = request.args.get("email", "your@email.com")
-    skills = request.args.get("skills", "")
-
-    skills = skills.split(",") if skills else []
-
+    skills = request.args.get("skills", "").split(",")
     summary, projects = generate_portfolio(skills)
 
     return render_template(
         "portfolio.html",
-        name=name,
-        email=email,
         skills=skills,
         summary=summary,
         projects=projects
     )
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-
-
-def create_pdf(name, email, skills, summary, projects):
-    file_path = "portfolio.pdf"
-
-    doc = SimpleDocTemplate(file_path)
-    styles = getSampleStyleSheet()
-
-    content = []
-
-    content.append(Paragraph(f"<b>Name:</b> {name}", styles["Normal"]))
-    content.append(Paragraph(f"<b>Email:</b> {email}", styles["Normal"]))
-    content.append(Spacer(1, 10))
-
-    content.append(Paragraph("<b>Skills:</b>", styles["Heading2"]))
-    for s in skills:
-        content.append(Paragraph(s, styles["Normal"]))
-
-    content.append(Spacer(1, 10))
-
-    content.append(Paragraph("<b>Summary:</b>", styles["Heading2"]))
-    content.append(Paragraph(summary, styles["Normal"]))
-
-    content.append(Spacer(1, 10))
-
-    content.append(Paragraph("<b>Projects:</b>", styles["Heading2"]))
-    for p in projects:
-        content.append(Paragraph(p, styles["Normal"]))
-
-    doc.build(content)
-
-    return file_path
 
 
 # ================= RUN =================
 if __name__ == "__main__":
-    if not os.path.exists(UPLOAD_FOLDER):
-        os.makedirs(UPLOAD_FOLDER)
+    if not os.path.exists("uploads"):
+        os.makedirs("uploads")
+
+    with app.app_context():
+        db.create_all()
 
     app.run(debug=True)
